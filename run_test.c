@@ -5,37 +5,72 @@
 // CSE 3318 - Brennan Ziadeh 1001773667
 
 int main() {
+	printf("This program will create a max-heap and perform operations on it based on data from a file.\n\n");
 
-	int N,k,i;
 	char fname[501];
-	int debug = 0;
-	struct heap_struct heapS;
-	printf("This program will call the heap functions.\n");   
-   
+	printf("Enter a file name: ");
+	scanf("%s", fname);
 
-	N = 3;
-	int *arr = (int*) calloc(N, sizeof(int) );
-	arr[0] = 10;
-	arr[1] = 20;
-	arr[2] = 43;
+	// attempt to load the file from the user	
+	// notify if not found
+	FILE *file = fopen(fname, "r");
+	if(!file) {
+		printf("The specified file could not be found.\n");
+		return 0;
+	}
 
-    heapS = make_heap(N, arr);         
-	print_heap(heapS);
+	int size;
+	fscanf(file, "%d", &size);
 
-	printf("removed: %6d\n", poll(&heapS) );	
-	print_heap(heapS);
+	int *items = calloc(size, sizeof(int));
+	int data;
 
-	printf("peek:    %6d\n", peek(heapS) );
-	print_heap(heapS);
-	
-	printf("add:     %6d\n", 17);	
-	add(&heapS, 17);
-	print_heap(heapS);
-	
-	printf("removed: %6d\n", poll(&heapS) );	
-	print_heap(heapS);
+	// load the array from the file and 
+	// create a heap using the data
+	for(int i = 0; i < size; i++) {
+		fscanf(file, "%d", &data);
+		items[i] = data; 
+	}
+	struct heap_struct heap = make_heap(size, items);
+	print_heap(heap);
 
-	printf("removed: %6d\n", poll(&heapS) );	
-	print_heap(heapS);
+	// parse the operations from the file
+	// and execute them on the heap
+	int operations_size;
+	fscanf(file, "%d", &operations_size);
+
+	char operation[10];
+	for(int i = 0; i < operations_size; i++) {
+		fscanf(file, "%s", operation);
+
+		printf("Operation number %d, string: %s\n", i+1, operation);
+		if(operation[0] == 'P' || operation[0] == 'p') {
+			
+			// only take the largest value from the heap
+			// without removing it
+			int value = peek(heap);
+			printf("peek:  %d\n", value);
+			
+		} else if(operation[0] == '*') {
+			
+			// remove the largest value from the heap and
+			// reorganize the values
+			int value = poll(&heap);
+			printf("removed:  %d\n", value);
+
+		} else {
+
+			int value = atoi(operation);
+			add(&heap, value);
+			printf("added:  %d\n", value);
+		}
+
+		// print the heap after every operation
+		// is executed to see the new result
+		print_heap(heap);
+	}
+
+	destroy(&heap);
+	fclose(file);
     return 0;
 }
